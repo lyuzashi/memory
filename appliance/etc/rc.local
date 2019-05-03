@@ -33,9 +33,9 @@ modprobe 8021q
 
 
 # Setup user
-USERNAME=hal
+USERNAME=memory
 useradd -m $USERNAME
-usermod -s /bin/bash hal
+usermod -s /bin/bash $USERNAME
 NEWHOME=$(eval echo ~$USERNAME)
 
 
