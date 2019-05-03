@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Setup any VLANs on boot
+ip link add link eth0 name eth0.6 type vlan id 6
+
+# Remove this file if you want to re-run the setup
+#
+if [ -f /boot/pi-install.done ] ; then
+  exit 0
+fi
+
+if [ -f /boot/cmdline.original.txt ] ; then
+  mv -f /boot/cmdline.original.txt /boot/cmdline.txt
+fi
+
+# Set hostname
+echo "Memory" | tee /etc/hostname > /dev/null
+
+# Find best apt mirror
+export DEBIAN_FRONTEND=noninteractive
+sudo apt-get install netselect-apt -y
+sudo netselect-apt
+
+apt install vlan -y
+echo '8021q' | tee -a /etc/modules > /dev/null
+modprobe 8021q
+
+
+# Update sources and packages
+apt update
+apt full-upgrade -y
+
+# Setup user
+USERNAME=hal
+useradd -m $USERNAME
+usermod -s /bin/bash hal
+NEWHOME=$(eval echo ~$USERNAME)
+
+
+# Provide bind to lower ports and BTL permissions to node binary
+setcap cap_net_bind_service,cap_net_raw+eip $(eval readlink -f `which node`)
+usermod -a -G audio hal # Provide audio permissions to user
+usermod -a -G gpio hal # Provide gpio permissions to user
+
+# Install service manager
+su - hal -c "npm install -g forever forever-service"
+
+
+# Flag script as done
+touch /boot/pi-install.done
+
+# Modules for node won't be available until reboot. Can they be installed though?
+sudo rpi-update
+reboot
+
+exit 0
