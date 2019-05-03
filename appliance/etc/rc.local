@@ -21,14 +21,16 @@ export DEBIAN_FRONTEND=noninteractive
 sudo apt-get install netselect-apt -y
 sudo netselect-apt
 
-apt install vlan -y
-echo '8021q' | tee -a /etc/modules > /dev/null
-modprobe 8021q
-
-
 # Update sources and packages
 apt update
 apt full-upgrade -y
+
+apt install vlan nginx-full -y
+
+# Ensure VLAN module is installed
+echo '8021q' | tee -a /etc/modules > /dev/null
+modprobe 8021q
+
 
 # Setup user
 USERNAME=hal
