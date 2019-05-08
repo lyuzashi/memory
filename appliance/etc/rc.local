@@ -21,31 +21,43 @@ export DEBIAN_FRONTEND=noninteractive
 sudo apt-get install netselect-apt -y
 sudo netselect-apt
 
+# Add certbot repo
+add-apt-repository ppa:certbot/certbot
+
 # Update sources and packages
 apt update
 apt full-upgrade -y
 
-apt install vlan nginx-full -y
+# Install required software
+apt install vlan lighttpd lighttpd-mod-webdav apache2-utils certbot git -y
 
 # Ensure VLAN module is installed
 echo '8021q' | tee -a /etc/modules > /dev/null
 modprobe 8021q
 
+# Setup Lighttpd
+chown www-data:www-data /var/run/lighttpd/
+lighty-enable-mod auth
+mkdir -p /var/www/webdav
+chown www-data:www-data /var/www/webdav
+touch /var/www/passwd
 
-# Setup user
-USERNAME=memory
-useradd -m $USERNAME
-usermod -s /bin/bash $USERNAME
-NEWHOME=$(eval echo ~$USERNAME)
+chown root:www-data /var/www/passwd
+sudo chmod 640 /var/www/passwd
+sudo /etc/init.d/lighttpd restart
 
+# Setup SSL certificate
+certbot certonly --webroot -w /var/www/html -d example.com -d www.example.com -n --agree-tos -q
 
-# Provide bind to lower ports and BTL permissions to node binary
-setcap cap_net_bind_service,cap_net_raw+eip $(eval readlink -f `which node`)
-usermod -a -G audio hal # Provide audio permissions to user
-usermod -a -G gpio hal # Provide gpio permissions to user
+chown :www-data /etc/letsencrypt
+chown :www-data /etc/letsencrypt/live
+chmod g+x /etc/letsencrypt
+chmod g+x /etc/letsencrypt/live
+cat /etc/letsencrypt/live/example.com/privkey.pem /etc/letsencrypt/live/example.com/cert.pem > /etc/letsencrypt/live/example.com/merged.pem
 
-# Install service manager
-su - hal -c "npm install -g forever forever-service"
+# Download KeeWeb
+git clone --single-branch --branch gh-pages https://github.com/keeweb/keeweb.git /var/www/html/keeweb
+chown www-data:www-data -r /var/www/html/keeweb
 
 
 # Flag script as done

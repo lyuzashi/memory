@@ -11,3 +11,9 @@ cp -a $DIR/appliance /Volumes/boot
 
 rm release.zip
 
+touch $SDBOOT/ssh
+
+echo "Appliance installed on boot partition."
+echo "To complete setup, wait for reboot then ssh pi@memory.local"
+echo "use default Raspberry Pi password."
+
