@@ -57,7 +57,9 @@ chmod g+x /etc/letsencrypt/live
 cat /etc/letsencrypt/live/memory.grid.robotjamie.com/privkey.pem /etc/letsencrypt/live/memory.grid.robotjamie.comcert.pem > /etc/letsencrypt/live/memory.grid.robotjamie.com/merged.pem
 
 # Download KeeWeb
-git clone --single-branch --branch gh-pages https://github.com/keeweb/keeweb.git /var/www/html/keeweb
+git init /var/www/html/keeweb
+git remote add origin https://github.com/keeweb/keeweb.git /var/www/html/keeweb
+source /scripts/update-keeweb.sh
 chown www-data:www-data -r /var/www/html/keeweb
 
 

@@ -1,0 +1,21 @@
+{
+  "settings": {
+    "autoSave": true,
+    "rememberKeyFiles": false, 
+    "canOpen": false,
+    "canOpenDemo": false,
+    "canOpenSettings": true,
+    "canCreate": false,
+    "canImportXml": true,
+    "dropbox": false,
+    "webdav": true,
+    "webdavSaveMethod": "move"
+  },
+  "files": [{
+    "storage": "webdav",
+    "name": "Vault",
+    "path": "../vault.kdbx",
+    "options": { "user": "", "password": "" }
+  }],
+  "showOnlyFilesFromConfig": true
+}
