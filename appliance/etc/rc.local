@@ -29,6 +29,7 @@ apt update
 apt full-upgrade -y
 
 # Install required software
+# Using -y flag accepts to install packages and uses default option to keep existing files
 apt install vlan lighttpd lighttpd-mod-webdav apache2-utils certbot git -y
 
 # Ensure VLAN module is installed
