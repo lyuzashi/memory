@@ -48,13 +48,13 @@ sudo chmod 640 /var/www/passwd
 sudo /etc/init.d/lighttpd restart
 
 # Setup SSL certificate
-certbot certonly --webroot -w /var/www/html -d example.com -d www.example.com -n --agree-tos -q
+certbot certonly --webroot -w /var/www/html -d memory.grid.robotjamie.com -n --agree-tos -q
 
 chown :www-data /etc/letsencrypt
 chown :www-data /etc/letsencrypt/live
 chmod g+x /etc/letsencrypt
 chmod g+x /etc/letsencrypt/live
-cat /etc/letsencrypt/live/example.com/privkey.pem /etc/letsencrypt/live/example.com/cert.pem > /etc/letsencrypt/live/example.com/merged.pem
+cat /etc/letsencrypt/live/memory.grid.robotjamie.com/privkey.pem /etc/letsencrypt/live/memory.grid.robotjamie.comcert.pem > /etc/letsencrypt/live/memory.grid.robotjamie.com/merged.pem
 
 # Download KeeWeb
 git clone --single-branch --branch gh-pages https://github.com/keeweb/keeweb.git /var/www/html/keeweb
