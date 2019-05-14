@@ -45,16 +45,27 @@ touch /var/www/passwd
 
 chown root:www-data /var/www/passwd
 sudo chmod 640 /var/www/passwd
-sudo /etc/init.d/lighttpd restart
 
-# Setup SSL certificate
-certbot certonly --webroot -w /var/www/html -d memory.grid.robotjamie.com -n --agree-tos -q
-
+# Setup cert store and self-signed certificate
+KEYDIR=/etc/letsencrypt/live/memory.grid.robotjamie.com
+mkdir -p $KEYDIR
 chown :www-data /etc/letsencrypt
 chown :www-data /etc/letsencrypt/live
 chmod g+x /etc/letsencrypt
 chmod g+x /etc/letsencrypt/live
-cat /etc/letsencrypt/live/memory.grid.robotjamie.com/privkey.pem /etc/letsencrypt/live/memory.grid.robotjamie.comcert.pem > /etc/letsencrypt/live/memory.grid.robotjamie.com/merged.pem
+
+openssl req -new -newkey rsa:1024 -nodes -out $KEYDIR/ca.csr -keyout $KEYDIR/ca.key -subj /
+openssl x509 -trustout -signkey $KEYDIR/ca.key -days 365 -req -in $KEYDIR/ca.csr -out $KEYDIR/chain.pem
+openssl genrsa -out $KEYDIR/privkey.key 1024
+openssl req -new -key $KEYDIR/privkey.key -out $KEYDIR/client.csr -subj /CN=memory.grid.robotjamie.com
+openssl x509 -req -CA $KEYDIR/chain.pem -CAkey $KEYDIR/ca.key -CAcreateserial -in $KEYDIR/client.csr -out $KEYDIR/cert.pem
+cat $KEYDIR/privkey.key $KEYDIR/cert.pem > $KEYDIR/merged.pem
+
+/etc/init.d/lighttpd restart
+
+# Setup SSL certificate
+certbot certonly --webroot -w /var/www/html -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@robotjamie.com --expand --staging 
+# cat $KEYDIR/privkey.pem $KEYDIR/cert.pem > $KEYDIR/merged.pem
 
 # Download KeeWeb
 git init /var/www/html/keeweb
