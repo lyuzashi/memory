@@ -47,12 +47,9 @@ chown root:www-data /var/www/passwd
 sudo chmod 640 /var/www/passwd
 
 # Setup cert store and self-signed certificate
-KEYDIR=/etc/letsencrypt/live/memory.grid.robotjamie.com
+KEYDIR=/var/www/certificates
+LEKEYDIR=/etc/letsencrypt/live/memory.grid.robotjamie.com
 mkdir -p $KEYDIR
-chown :www-data /etc/letsencrypt
-chown :www-data /etc/letsencrypt/live
-chmod g+x /etc/letsencrypt
-chmod g+x /etc/letsencrypt/live
 
 openssl req -new -newkey rsa:1024 -nodes -out $KEYDIR/ca.csr -keyout $KEYDIR/ca.key -subj /
 openssl x509 -trustout -signkey $KEYDIR/ca.key -days 365 -req -in $KEYDIR/ca.csr -out $KEYDIR/chain.pem
@@ -61,17 +58,28 @@ openssl req -new -key $KEYDIR/privkey.key -out $KEYDIR/client.csr -subj /CN=memo
 openssl x509 -req -CA $KEYDIR/chain.pem -CAkey $KEYDIR/ca.key -CAcreateserial -in $KEYDIR/client.csr -out $KEYDIR/cert.pem
 cat $KEYDIR/privkey.key $KEYDIR/cert.pem > $KEYDIR/merged.pem
 
+chown -R :www-data $KEYDIR
+chmod -R g+x $KEYDIR
+
 /etc/init.d/lighttpd restart
 
 # Setup SSL certificate
-certbot certonly --webroot -w /var/www/html -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@robotjamie.com --expand --staging 
-# cat $KEYDIR/privkey.pem $KEYDIR/cert.pem > $KEYDIR/merged.pem
+certbot certonly --webroot -w /var/www/html -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@robotjamie.com 
+cat $LEKEYDIR/privkey.pem $LEKEYDIR/cert.pem > $KEYDIR/merged.pem
+cp $LEKEYDIR/chain.pem $KEYDIR/chain.pem
+chown -R :www-data $KEYDIR
+chmod -R g+x $KEYDIR
+
+/etc/init.d/lighttpd restart
 
 # Download KeeWeb
-git init /var/www/html/keeweb
-git remote add origin https://github.com/keeweb/keeweb.git /var/www/html/keeweb
+KEEWEB=/var/www/html/keeweb
+mkdir -p $KEEWEB
+git init $KEEWEB
+cd $KEEWEB
+git remote add origin https://github.com/keeweb/keeweb.git
 source /scripts/update-keeweb.sh
-chown www-data:www-data -r /var/www/html/keeweb
+chown :www-data -R $KEEWEB
 
 
 # Flag script as done
