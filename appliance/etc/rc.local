@@ -38,6 +38,8 @@ modprobe 8021q
 
 a2enmod dav
 a2enmod dav_fs
+a2enmod headers
+a2enmod remoteip
 
 # Setup Lighttpd
 # chown www-data:www-data /var/run/lighttpd/
