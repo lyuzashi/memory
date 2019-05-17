@@ -30,54 +30,26 @@ apt full-upgrade -y
 
 # Install required software
 # Using -y flag accepts to install packages and uses default option to keep existing files
-apt install vlan apache2-utils apache2 certbot git -y
+apt install vlan apache2-utils apache2 certbot git python-certbot-apache -y
 
 # Ensure VLAN module is installed
 echo '8021q' | tee -a /etc/modules > /dev/null
 modprobe 8021q
 
+# Setup Apache
 a2enmod dav
 a2enmod dav_fs
 a2enmod headers
 a2enmod remoteip
 
-# Setup Lighttpd
-# chown www-data:www-data /var/run/lighttpd/
-# lighty-enable-mod auth
 mkdir -p /var/www/webdav
 chown www-data:www-data /var/www/webdav
 touch /var/www/passwd
 
 sudo service apache2 restart
 
-# chown root:www-data /var/www/passwd
-# sudo chmod 640 /var/www/passwd
-
-# # Setup cert store and self-signed certificate
-# KEYDIR=/var/www/certificates
-# LEKEYDIR=/etc/letsencrypt/live/memory.grid.robotjamie.com
-# mkdir -p $KEYDIR
-
-# openssl req -new -newkey rsa:1024 -nodes -out $KEYDIR/ca.csr -keyout $KEYDIR/ca.key -subj /
-# openssl x509 -trustout -signkey $KEYDIR/ca.key -days 365 -req -in $KEYDIR/ca.csr -out $KEYDIR/chain.pem
-# openssl genrsa -out $KEYDIR/privkey.key 1024
-# openssl req -new -key $KEYDIR/privkey.key -out $KEYDIR/client.csr -subj /CN=memory.grid.robotjamie.com
-# openssl x509 -req -CA $KEYDIR/chain.pem -CAkey $KEYDIR/ca.key -CAcreateserial -in $KEYDIR/client.csr -out $KEYDIR/cert.pem
-# cat $KEYDIR/privkey.key $KEYDIR/cert.pem > $KEYDIR/merged.pem
-
-# chown -R :www-data $KEYDIR
-# chmod -R g+x $KEYDIR
-
-# /etc/init.d/lighttpd restart
-
 # # Setup SSL certificate
-# certbot certonly --webroot -w /var/www/html -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@robotjamie.com 
-# cat $LEKEYDIR/privkey.pem $LEKEYDIR/cert.pem > $KEYDIR/merged.pem
-# cp $LEKEYDIR/chain.pem $KEYDIR/chain.pem
-# chown -R :www-data $KEYDIR
-# chmod -R g+x $KEYDIR
-
-# /etc/init.d/lighttpd restart
+sudo certbot --apache -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@robotjamie.com
 
 # Download KeeWeb
 KEEWEB=/var/www/html/keeweb
