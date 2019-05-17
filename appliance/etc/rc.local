@@ -37,10 +37,7 @@ echo '8021q' | tee -a /etc/modules > /dev/null
 modprobe 8021q
 
 # Setup Apache
-a2enmod dav
-a2enmod dav_fs
-a2enmod headers
-a2enmod remoteip
+a2enmod dav dav_fs headers remoteip rewrite
 
 mkdir -p /var/www/webdav
 chown www-data:www-data /var/www/webdav
