@@ -88,6 +88,14 @@ git remote add origin https://github.com/keeweb/keeweb.git
 source /scripts/update-keeweb.sh
 chown :www-data -R $KEEWEB
 
+# Mount backup media
+mkdir -p /media/backup
+chown www-data /media/backup
+chmod 777 /media/backup
+echo "/dev/sda1 /media/backup vfat rw,uid=www-data,gid=www-data,umask=002,dmask=002 0 0" | tee -a /etc/fstab > /dev/null
+mount -a
+sudo cp -r /media/backup/* /var/www/webdav/
+lsyncd -rsync /var/www/webdav /media/backup
 
 # Flag script as done
 touch /boot/pi-install.done
