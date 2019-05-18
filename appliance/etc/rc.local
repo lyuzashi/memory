@@ -3,6 +3,12 @@
 # Setup any VLANs on boot
 ip link add link eth0 name eth0.6 type vlan id 6
 
+# Delete pi user
+if [ -f /boot/pi-delete.waiting ] ; then
+  rm /boot/pi-delete.waiting
+  deluser -f -remove-home pi
+fi
+
 # Remove this file if you want to re-run the setup
 #
 if [ -f /boot/pi-install.done ] ; then
