@@ -7,7 +7,7 @@ echo ""
 sudo htpasswd -b -c /var/www/passwd $USERNAME $PASSWORD
 sudo useradd -p $(openssl passwd -1 $PASSWORD) -G sudo,www-data -m -s /bin/bash $USERNAME
 
-touch /boot/pi-delete.waiting
+sudo touch /boot/pi-delete.waiting
 
 echo "Default will be deleted after reboot. Please log in with $USERNAME"
 
