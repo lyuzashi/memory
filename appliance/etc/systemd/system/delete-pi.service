@@ -1,0 +1,13 @@
+[Unit]
+Description=Delete default user
+#After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/scripts/delete-pi.sh
+RemainAfterExit=true
+ExecStop=/scripts/delete-pi.sh
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
