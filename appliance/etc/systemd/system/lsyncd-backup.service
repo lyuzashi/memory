@@ -1,0 +1,12 @@
+[Unit]
+Description=lsyncd-backup-service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/lsyncd -nodaemon -log all -rsync /var/www/webdav /media/backup
+ExecReload=/bin/kill -HUP ${MAINPID}
+ExecStop=/bin/kill -WINCH ${MAINPID}
+
+[Install]
+WantedBy=multi-user.target

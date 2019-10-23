@@ -68,6 +68,8 @@ mount -a
 sudo cp -r /media/backup/* /var/www/webdav/
 lsyncd -rsync /var/www/webdav /media/backup
 chown -R www-data:www-data /var/www
+systemctl enable lsyncd-backup.service
+systemctl start lsyncd-backup.service
 
 # Flag script as done
 touch /boot/pi-install.done
