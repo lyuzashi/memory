@@ -30,7 +30,7 @@ apt full-upgrade -y
 
 # Install required software
 # Using -y flag accepts to install packages and uses default option to keep existing files
-apt install vlan apache2-utils apache2 certbot git python-certbot-apache lsyncd -y
+apt install vlan apache2-utils apache2 certbot git python-certbot-apache lsyncd mosquitto mosquitto-clients mariadb-server -y
 
 # Ensure VLAN module is installed
 echo '8021q' | tee -a /etc/modules > /dev/null
@@ -44,11 +44,6 @@ chown www-data:www-data /var/www/webdav
 touch /var/www/passwd
 
 service apache2 restart
-
-# # Setup SSL certificate
-certbot --apache -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@robotjamie.com #--staging
-# To update to production certificate, run
-# certbot --apache -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@robotjamie.com --force-renew
 
 # Download KeeWeb
 KEEWEB=/var/www/html/keeweb
@@ -68,6 +63,31 @@ mount -a
 sudo cp -r /media/backup/* /var/www/webdav/
 lsyncd -rsync /var/www/webdav /media/backup
 chown -R www-data:www-data /var/www
+
+
+# # Setup SSL certificate
+if [ -f /media/backup/letsencrypt_backup.tar.gz ] ; then
+  tar zxvf /media/backup/letsencrypt_backup.tar.gz -C /
+fi
+certbot --apache -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@robotjamie.com #--staging
+# To update to production certificate, run
+# certbot --apache -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@robotjamie.com --force-renew
+
+# Install node
+# Install node (finding latest version for major in .nvmrc, using correct arch version)
+SOURCE="https://nodejs.org/dist/latest"
+MAJOR="$(sed -En 's/[^0-9]*([0-9]+).*/\1/p' /var/www/location/server/.nvmrc)"
+ARM="$(sed -n 's/model name.*(\(\S*\)).*$/\1/p' /proc/cpuinfo | head -1)"
+NODE="$(curl -sL $SOURCE-v$MAJOR.x | grep arm$ARM.tar.xz | cut -d'"' -f2)"
+wget -O node.tar.xz $SOURCE-v$MAJOR.x/$NODE
+tar -xf node.tar.xz
+chmod -R 755 node*/bin/*
+cp -r node*/{bin,lib,share} /usr/local
+rm -r node*
+
+# Install and start PM2
+npm install -g pm2
+
 
 # Flag script as done
 touch /boot/pi-install.done
