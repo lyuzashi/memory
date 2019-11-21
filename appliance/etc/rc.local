@@ -30,7 +30,7 @@ apt full-upgrade -y
 
 # Install required software
 # Using -y flag accepts to install packages and uses default option to keep existing files
-apt install vlan apache2-utils apache2 certbot git python-certbot-apache lsyncd mosquitto mosquitto-clients mariadb-server -y
+apt install vlan apache2-utils apache2 certbot git python-certbot-apache lsyncd mosquitto mosquitto-clients -y
 
 # Ensure VLAN module is installed
 echo '8021q' | tee -a /etc/modules > /dev/null
