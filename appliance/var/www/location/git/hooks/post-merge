@@ -1,0 +1,4 @@
+#!/bin/bash
+
+npm install
+sudo systemctl restart location

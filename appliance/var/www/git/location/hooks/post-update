@@ -1,0 +1,6 @@
+#!/bin/bash
+
+git update-server-info
+git --git-dir /var/www/location/.git --work-tree /var/www/location clean -fdx
+git --git-dir /var/www/location/.git --work-tree /var/www/location reset --hard HEAD
+git --git-dir /var/www/location/.git --work-tree /var/www/location pull

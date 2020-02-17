@@ -17,12 +17,14 @@ fi
 echo "Memory" | tee /etc/hostname > /dev/null
 
 # Find best apt mirror
-export DEBIAN_FRONTEND=noninteractive
-sudo apt-get install netselect-apt -y
-sudo netselect-apt
+# export DEBIAN_FRONTEND=noninteractive
+# sudo apt-get install netselect-apt -y
+# sudo netselect-apt
 
 # Add certbot repo
-add-apt-repository ppa:certbot/certbot
+apt update
+apt-get install software-properties-common -y
+# add-apt-repository ppa:certbot/certbot
 
 # Update sources and packages
 apt update
@@ -30,20 +32,22 @@ apt full-upgrade -y
 
 # Install required software
 # Using -y flag accepts to install packages and uses default option to keep existing files
-apt install vlan apache2-utils apache2 certbot git python-certbot-apache lsyncd mosquitto mosquitto-clients -y
+apt install vlan libapache2-mpm-itk apache2-utils apache2 certbot git python-certbot-apache lsyncd apache2-bin -y
 
 # Ensure VLAN module is installed
 echo '8021q' | tee -a /etc/modules > /dev/null
 modprobe 8021q
 
 # Setup Apache
-a2enmod dav dav_fs headers remoteip rewrite
+a2enmod dav dav_fs headers remoteip rewrite proxy proxy_http cgi alias env mpm_prefork authz_host access_compat dir authn_file authz_user
+
+a2ensite 000-default.conf
+systemctl restart apache2
 
 mkdir -p /var/www/webdav
 chown www-data:www-data /var/www/webdav
 touch /var/www/passwd
 
-service apache2 restart
 
 # Download KeeWeb
 KEEWEB=/var/www/html/keeweb
@@ -78,7 +82,7 @@ certbot --apache -d memory.grid.robotjamie.com -n --agree-tos -q --email ben@rob
 # Install node
 # Install node (finding latest version for major in .nvmrc, using correct arch version)
 SOURCE="https://nodejs.org/dist/latest"
-MAJOR="$(sed -En 's/[^0-9]*([0-9]+).*/\1/p' /var/www/location/server/.nvmrc)"
+MAJOR="10"
 ARM="$(sed -n 's/model name.*(\(\S*\)).*$/\1/p' /proc/cpuinfo | head -1)"
 NODE="$(curl -sL $SOURCE-v$MAJOR.x | grep arm$ARM.tar.xz | cut -d'"' -f2)"
 wget -O node.tar.xz $SOURCE-v$MAJOR.x/$NODE
@@ -86,15 +90,42 @@ tar -xf node.tar.xz
 chmod -R 755 node*/bin/*
 cp -r node*/{bin,lib,share} /usr/local
 rm -r node*
+# Allow binding to port 80
+setcap 'cap_net_bind_service=+ep' $(which node)
 
-# Install and start PM2
-npm install -g pm2
+echo 'www-data ALL=NOPASSWD: /bin/systemctl restart location' | tee -a /etc/sudoers
 
+# npm install -g pm2
+# mkdir /var/www/.pm2
+# chown www-data:www-data /var/www/.pm2
+# chmod +s /var/www/.pm2
 
+cd /var/www/location
+mv git .git
+git init . # Reinitialise 
+chown -R :www-data .
+chmod -R g+w .
+
+cd /var/www/git/location
+git init . --bare # Reinitialise 
+git fetch -q https://github.com/lyuzashi/location.git master:master
+# Update permissions after init creates new files
+chown -R :www-data .
+chmod -R g+w .
+sudo -u www-data hooks/post-update
+cd /var/www/location
+sudo -u www-data .git/hooks/post-merge
+
+# systemctl enable mongodb
+systemctl enable location
+systemctl start location
+systemctl enable apache2
+systemctl restart apache2
 # Flag script as done
 touch /boot/pi-install.done
 
 # Modules for node won't be available until reboot. Can they be installed though?
+export SKIP_WARNING=1
 sudo rpi-update
 reboot
 

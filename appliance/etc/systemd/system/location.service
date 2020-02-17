@@ -1,0 +1,13 @@
+[Unit]
+Description=Web service for Overland
+After=network.target
+
+[Service]
+Environment=NODE_ENV=production
+Type=simple
+User=root
+ExecStart=/usr/local/bin/node /var/www/location/location-server.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
