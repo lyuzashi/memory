@@ -14,15 +14,16 @@ users:
   - name: git
     shell: /usr/bin/git-shell
     ssh_import_id: None
-    sudo: ALL=(hal) NOPASSWD:/usr/bin/git *
+    sudo: ALL=(www-data) NOPASSWD:/usr/bin/git *, /usr/bin/chmod *
     ssh_authorized_keys:
       - no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBJ+EnuY4lXvYnIBBDsbcUjbV/TlO7yhIFxpgsHnOHs/xjQ2mX4oIiHTF1syx4IXkPo6AxuTrhPeM2decqSM+AU70vTkFxABOyrsevuXFYX+/s9jlLsJV+qT+GAloJ9wPlh3lA4CR2ucyTReWekkeW19sjp1QC4+bU24RkDUAHbCqnBUaQDFsKcqPUqNjenQPVtRkX9lYCzF28EplN1wVbd3AcnZFsdZ6WXGlFhSjE4W/jYaww4aTddLnPMb9TMFahQ75xzUCdpAqdQ68Oe1HQDKTWTvKDy6t/erc1uR8a8b4PJ/n9ZXyH0RNWjhD6Y2UtUJsc17mcGBC7ThKtIjPb ben@Number5
-  - name: hal
-    ssh_import_id: None
-    groups: git, audio
+  - name: www-data
+    # ssh_import_id: None
+    groups: git
     shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:/bin/systemctl restart location 
   - name: ben
-    groups: sudo, ssh, hal
+    groups: sudo, ssh, www-data
     ssh_import_id: None
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -54,16 +55,17 @@ write_files:
   content: |
     vhci-hcd
     8021q
-- path: /home/git/mqtt-smarthome-system/hooks/post-update
+- path: /var/www/git/location/hooks/post-update
   permissions: '0744'
   content: |
     #!/bin/bash
     git update-server-info
-    DIR=/home/hal/mqtt-smarthome-system
-    sudo -u hal git --git-dir $DIR/.git --work-tree $DIR clean -fdx
-    sudo -u hal git --git-dir $DIR/.git --work-tree $DIR reset --hard HEAD
-    sudo -u hal git --git-dir $DIR/.git --work-tree $DIR pull
-- path: /home/git/mqtt-smarthome-system/config
+    cd /var/www/location
+    git clean -fd
+    git reset --hard HEAD
+    git pull
+    sudo -u www-data chmod -R g+w .
+- path: /var/www/git/location/config
   permissions: '0644'
   content: |
     [core]
@@ -74,7 +76,13 @@ write_files:
       precomposeunicode = true
     [http]
       receivepack = true
-- path: /home/hal/mqtt-smarthome-system/.git/config
+- path: /var/www/location/.git/hooks/post-merge
+  permissions: '0744'
+  content: |
+    #!/bin/bash
+    npm install
+    sudo systemctl restart location
+- path: /var/www/location/.git/config
   permissions: '0644'
   content: |
     [core]
@@ -83,16 +91,36 @@ write_files:
       bare = false
       logallrefupdates = true
     [remote "origin"]
-      url = /home/git/mqtt-smarthome-system
+      url = /var/www/git/location
       fetch = +refs/heads/*:refs/remotes/origin/*
     [branch "master"]
       remote = origin
       merge = refs/heads/master
-- path: /home/hal/mqtt-smarthome-system/.git/hooks/post-merge
-  permissions: '0744'
+- path: /var/www/html/keeweb/config.json
+  permission: '644'
   content: |
-    #!/bin/bash
-    yarn install
+    {
+      "settings": {
+        "autoSave": true,
+        "rememberKeyFiles": false, 
+        "canOpen": false,
+        "canOpenDemo": false,
+        "canOpenSettings": true,
+        "canCreate": false,
+        "canImportXml": true,
+        "dropbox": false,
+        "webdav": true,
+        "webdavSaveMethod": "move"
+      },
+      "files": [{
+        "storage": "webdav",
+        "name": "Vault",
+        "path": "../vault.kdbx",
+        "options": { "user": "", "password": "" }
+      }],
+      "showOnlyFilesFromConfig": true
+    }
+## HERE
 - path: /etc/systemd/system/pm2.service
   permissions: '0644'
   content: |
