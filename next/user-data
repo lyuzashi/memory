@@ -48,6 +48,8 @@ packages:
 - git
 - python-certbot-apache
 - lsyncd
+- libapache2-mod-authnz-external
+- pwauth
 
 write_files:
 - path: /etc/modules
